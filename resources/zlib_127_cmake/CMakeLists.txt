@@ -6,7 +6,7 @@ project ( lookaside_zlib C )
 
 set ( VERSION "1.2.8" )
 
-set ( ${PROJECT_NAME}_SRCDIR ${CMAKE_CURRENT_LIST_DIR}/../../lookaside_zlib )
+set ( ${PROJECT_NAME}_SRCDIR ${CMAKE_CURRENT_LIST_DIR}/../../../../lookaside/zlib )
 
 if ( NOT ${PROJECT_NAME}_SRCDIR STREQUAL CMAKE_CURRENT_BINARY_DIR )
     # If we're doing an out of source build and the user has a zconf.h
@@ -54,10 +54,10 @@ set ( ${PROJECT_NAME}_SRCS
         ${${PROJECT_NAME}_SRCDIR}/compress.c
         ${${PROJECT_NAME}_SRCDIR}/crc32.c
         ${${PROJECT_NAME}_SRCDIR}/deflate.c
-        ${${PROJECT_NAME}_SRCDIR}/gzclose.c
-        ${${PROJECT_NAME}_SRCDIR}/gzlib.c
-        ${${PROJECT_NAME}_SRCDIR}/gzread.c
-        ${${PROJECT_NAME}_SRCDIR}/gzwrite.c
+        #${${PROJECT_NAME}_SRCDIR}/gzclose.c
+        #${${PROJECT_NAME}_SRCDIR}/gzlib.c
+        #${${PROJECT_NAME}_SRCDIR}/gzread.c
+        #${${PROJECT_NAME}_SRCDIR}/gzwrite.c
         ${${PROJECT_NAME}_SRCDIR}/inflate.c
         ${${PROJECT_NAME}_SRCDIR}/infback.c
         ${${PROJECT_NAME}_SRCDIR}/inftrees.c
@@ -82,4 +82,6 @@ if ( ${CMAKE_C_COMPILER_ID}x MATCHES "MSVCx" )
     target_compile_definitions ( ${PROJECT_NAME} PRIVATE
             -D_CRT_SECURE_NO_DEPRECATE  
             -D_CRT_NONSTDC_NO_DEPRECATE )
+    target_compile_options ( ${PROJECT_NAME} PRIVATE 
+            /wd4090 )
 endif ( ) 

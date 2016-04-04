@@ -4,10 +4,10 @@ cmake_minimum_required ( VERSION 2.8.12 )
 # project
 include ( ${CMAKE_CURRENT_LIST_DIR}/../../resources/cmake/ojdkbuild_common.cmake )
 project ( ojdkbuild_zlib C CXX )
-set ( ${PROJECT_NAME}_OJDKBUILD_VERSION 1.2.8.0 )
+set ( ${PROJECT_NAME}_OJDKBUILD_VERSION 1.2.7.0 )
 
 # static library
-add_subdirectory ( ${CMAKE_CURRENT_LIST_DIR}/resources/zlib_128_cmake ${CMAKE_CURRENT_BINARY_DIR}/lookaside_zlib )
+add_subdirectory ( ${CMAKE_CURRENT_LIST_DIR}/resources/zlib_127_cmake ${CMAKE_CURRENT_BINARY_DIR}/lookaside_zlib )
 
 # shared_library
 add_library ( ${PROJECT_NAME} SHARED ${CMAKE_CURRENT_LIST_DIR}/resources/${PROJECT_NAME}.def )
