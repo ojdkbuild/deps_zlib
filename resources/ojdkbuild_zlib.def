@@ -1,0 +1,7 @@
+EXPORTS
+    inflateInit_
+    inflate
+    inflateEnd
+    deflateInit_
+    deflate
+    deflateEnd
