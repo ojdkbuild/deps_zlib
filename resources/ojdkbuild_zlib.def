@@ -5,3 +5,12 @@ EXPORTS
     deflateInit_
     deflate
     deflateEnd
+    deflateInit2_
+    deflateSetDictionary
+    deflateParams
+    deflateReset
+    inflateInit2_
+    inflateSetDictionary
+    inflateReset
+    adler32
+    crc32
