@@ -13,18 +13,18 @@
 ; limitations under the License.
 
 EXPORTS
-    inflateInit_
-    inflate
-    inflateEnd
-    deflateInit_
-    deflate
-    deflateEnd
-    deflateInit2_
-    deflateSetDictionary
-    deflateParams
-    deflateReset
-    inflateInit2_
-    inflateSetDictionary
-    inflateReset
     adler32
     crc32
+    deflate
+    deflateEnd
+    deflateInit_
+    deflateInit2_
+    deflateParams
+    deflateReset
+    deflateSetDictionary
+    inflate
+    inflateEnd
+    inflateInit_
+    inflateInit2_
+    inflateReset
+    inflateSetDictionary
