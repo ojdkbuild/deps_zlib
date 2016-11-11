@@ -17,21 +17,54 @@ cmake_minimum_required ( VERSION 2.8.12 )
 
 project ( lookaside_zlib C )
 
-set ( VERSION "1.2.8" )
+set ( VERSION "1.2.7" )
 
 set ( ${PROJECT_NAME}_SRCDIR ${CMAKE_CURRENT_LIST_DIR}/../../../../lookaside/zlib )
 
-if ( NOT ${PROJECT_NAME}_SRCDIR STREQUAL CMAKE_CURRENT_BINARY_DIR )
-    # If we're doing an out of source build and the user has a zconf.h
-    # in their source tree...
-    if ( EXISTS ${${PROJECT_NAME}_SRCDIR}/zconf.h )
-        message ( STATUS "Renaming" )
-        message ( STATUS "    ${${PROJECT_NAME}_SRCDIR}/zconf.h" )
-        message ( STATUS "to 'zconf.h.included' because this file is included with zlib" )
-        message ( STATUS "but CMake generates it automatically in the build directory." )
-        file ( RENAME ${${PROJECT_NAME}_SRCDIR}/zconf.h ${${PROJECT_NAME}_SRCDIR}/zconf.h.included )
-  endif ( )
-endif ( )
+include(CheckTypeSize)
+include(CheckFunctionExists)
+include(CheckIncludeFile)
+include(CheckCSourceCompiles)
+enable_testing()
+
+check_include_file(sys/types.h HAVE_SYS_TYPES_H)
+check_include_file(stdint.h    HAVE_STDINT_H)
+check_include_file(stddef.h    HAVE_STDDEF_H)
+
+#
+# Check to see if we have large file support
+#
+set(CMAKE_REQUIRED_DEFINITIONS -D_LARGEFILE64_SOURCE=1)
+# We add these other definitions here because CheckTypeSize.cmake
+# in CMake 2.4.x does not automatically do so and we want
+# compatibility with CMake 2.4.x.
+if(HAVE_SYS_TYPES_H)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_SYS_TYPES_H)
+endif()
+if(HAVE_STDINT_H)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDINT_H)
+endif()
+if(HAVE_STDDEF_H)
+    list(APPEND CMAKE_REQUIRED_DEFINITIONS -DHAVE_STDDEF_H)
+endif()
+check_type_size(off64_t OFF64_T)
+if(HAVE_OFF64_T)
+   add_definitions(-D_LARGEFILE64_SOURCE=1)
+endif()
+set(CMAKE_REQUIRED_DEFINITIONS) # clear variable
+
+#
+# Check for fseeko
+#
+check_function_exists(fseeko HAVE_FSEEKO)
+if(NOT HAVE_FSEEKO)
+    add_definitions(-DNO_FSEEKO)
+endif()
+
+#
+# Check for unistd.h
+#
+check_include_file(unistd.h Z_HAVE_UNISTD_H)
 
 configure_file(	${${PROJECT_NAME}_SRCDIR}/zconf.h.cmakein
 		${CMAKE_CURRENT_BINARY_DIR}/zconf.h @ONLY )
@@ -45,12 +78,11 @@ string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
 # zlib
 #============================================================================
 
-set ( ${PROJECT_NAME}_PUBLIC_HDRS
+set(ZLIB_PUBLIC_HDRS
         ${CMAKE_CURRENT_BINARY_DIR}/zconf.h
-        ${${PROJECT_NAME}_SRCDIR}/zlib.h )
-source_group ( "include_public" FILES ${${PROJECT_NAME}_PUBLIC_HDRS} )
-
-set ( ${PROJECT_NAME}_PRIVATE_HDRS
+        ${${PROJECT_NAME}_SRCDIR}/zlib.h
+)
+set ( ZLIB_PRIVATE_HDRS
         ${${PROJECT_NAME}_SRCDIR}/crc32.h
         ${${PROJECT_NAME}_SRCDIR}/deflate.h
         ${${PROJECT_NAME}_SRCDIR}/gzguts.h
@@ -59,42 +91,34 @@ set ( ${PROJECT_NAME}_PRIVATE_HDRS
         ${${PROJECT_NAME}_SRCDIR}/inflate.h
         ${${PROJECT_NAME}_SRCDIR}/inftrees.h
         ${${PROJECT_NAME}_SRCDIR}/trees.h
-        ${${PROJECT_NAME}_SRCDIR}/zutil.h )
-source_group ( "include_private" FILES ${${PROJECT_NAME}_PRIVATE_HDRS} )        
-        
-set ( ${PROJECT_NAME}_SRCS
+        ${${PROJECT_NAME}_SRCDIR}/zutil.h
+)
+set ( ZLIB_SRCS
         ${${PROJECT_NAME}_SRCDIR}/adler32.c
         ${${PROJECT_NAME}_SRCDIR}/compress.c
         ${${PROJECT_NAME}_SRCDIR}/crc32.c
         ${${PROJECT_NAME}_SRCDIR}/deflate.c
-        #${${PROJECT_NAME}_SRCDIR}/gzclose.c
-        #${${PROJECT_NAME}_SRCDIR}/gzlib.c
-        #${${PROJECT_NAME}_SRCDIR}/gzread.c
-        #${${PROJECT_NAME}_SRCDIR}/gzwrite.c
+        ${${PROJECT_NAME}_SRCDIR}/gzclose.c
+        ${${PROJECT_NAME}_SRCDIR}/gzlib.c
+        ${${PROJECT_NAME}_SRCDIR}/gzread.c
+        ${${PROJECT_NAME}_SRCDIR}/gzwrite.c
         ${${PROJECT_NAME}_SRCDIR}/inflate.c
         ${${PROJECT_NAME}_SRCDIR}/infback.c
         ${${PROJECT_NAME}_SRCDIR}/inftrees.c
         ${${PROJECT_NAME}_SRCDIR}/inffast.c
         ${${PROJECT_NAME}_SRCDIR}/trees.c
         ${${PROJECT_NAME}_SRCDIR}/uncompr.c
-        ${${PROJECT_NAME}_SRCDIR}/zutil.c )
-source_group ( "src" FILES ${${PROJECT_NAME}_SRCS} )        
+        ${${PROJECT_NAME}_SRCDIR}/zutil.c
+)
 
-file ( COPY ${${PROJECT_NAME}_PUBLIC_HDRS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/install/include )
+FILE ( COPY ${ZLIB_PUBLIC_HDRS} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/install/include )
 
-add_library ( ${PROJECT_NAME} STATIC 
-        ${${PROJECT_NAME}_SRCS}
-        ${${PROJECT_NAME}_PUBLIC_HDRS}
-        ${${PROJECT_NAME}_PRIVATE_HDRS} )
-target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE 
-        ${CMAKE_CURRENT_BINARY_DIR} 
-        ${${PROJECT_NAME}_SRCDIR} )
-target_compile_definitions ( ${PROJECT_NAME} PRIVATE -DZLIB_CONST)
+add_library ( ${PROJECT_NAME} STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
+target_include_directories ( ${PROJECT_NAME} BEFORE PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${${PROJECT_NAME}_SRCDIR})
 
 if ( ${CMAKE_C_COMPILER_ID}x MATCHES "MSVCx" )
     target_compile_definitions ( ${PROJECT_NAME} PRIVATE
             -D_CRT_SECURE_NO_DEPRECATE  
             -D_CRT_NONSTDC_NO_DEPRECATE )
-    target_compile_options ( ${PROJECT_NAME} PRIVATE 
-            /wd4090 )
 endif ( ) 
+

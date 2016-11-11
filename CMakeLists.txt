@@ -22,15 +22,25 @@ set ( ${PROJECT_NAME}_OJDKBUILD_VERSION 1.2.7-1 )
 # static library
 add_subdirectory ( ${CMAKE_CURRENT_LIST_DIR}/resources/zlib_127_cmake ${CMAKE_CURRENT_BINARY_DIR}/lookaside_zlib )
 
-# shared_library
+# shared library
 add_library ( ${PROJECT_NAME} SHARED ${CMAKE_CURRENT_LIST_DIR}/resources/${PROJECT_NAME}.def )
 set_target_properties ( ${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE C )
 target_link_libraries ( ${PROJECT_NAME} lookaside_zlib )
 
-# pkg-config
+# exported static library
+add_custom_target ( ${PROJECT_NAME}_static DEPENDS lookaside_zlib )
+
+# pkg-config shared
 set ( ${PROJECT_NAME}_MODULE zlib )
 set ( ${PROJECT_NAME}_BUNDLE_LIB_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_NAME}${CMAKE_SHARED_LIBRARY_SUFFIX} )
-set ( ${PROJECT_NAME}_PC_CFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/lookaside_zlib/install/include -DZLIB_CONST" )
+set ( ${PROJECT_NAME}_PC_CFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/lookaside_zlib/install/include" )
 set ( ${PROJECT_NAME}_PC_LIBS "-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -l${PROJECT_NAME}" )
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/../../resources/cmake/pkg-config.in 
         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/pkgconfig/zlib.pc )
+
+# pkg-config static
+set ( ${PROJECT_NAME}_MODULE zlib_static )
+set ( ${PROJECT_NAME}_PC_CFLAGS "-I${CMAKE_CURRENT_BINARY_DIR}/lookaside_zlib/install/include" )
+set ( ${PROJECT_NAME}_PC_LIBS "-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -llookaside_zlib" )
+configure_file ( ${CMAKE_CURRENT_LIST_DIR}/../../resources/cmake/pkg-config.in 
+        ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/pkgconfig/zlib_static.pc )
