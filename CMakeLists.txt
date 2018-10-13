@@ -19,26 +19,16 @@ include ( ${CMAKE_CURRENT_LIST_DIR}/../../resources/cmake/ojdkbuild_common.cmake
 project ( ojdkbuild_zlib C CXX )
 set ( ${PROJECT_NAME}_OJDKBUILD_VERSION 1.2.7-1 )
 
-configure_file ( ${OJDKBUILD_DIR}/resources/buildres/deplib.rc
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.rc )
-
 # static library
 ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/zlib )
 
-# shared library
-add_library ( zlib SHARED
-        ${CMAKE_CURRENT_LIST_DIR}/resources/${PROJECT_NAME}.def
-        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.rc )
-set_target_properties ( zlib PROPERTIES LINKER_LANGUAGE C )
-target_link_libraries ( zlib z )
-set_property ( TARGET zlib APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" )
-
+add_custom_target ( zlib DEPENDS z )
 add_custom_target ( ${PROJECT_NAME} DEPENDS zlib )
 
 # shared pkg-config
 set ( ${PROJECT_NAME}_MODULE ojdkbuild_zlib )
 set ( ${PROJECT_NAME}_BUNDLE_LIB_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_SHARED_LIBRARY_PREFIX}zlib${CMAKE_SHARED_LIBRARY_SUFFIX} )
 set ( ${PROJECT_NAME}_PC_CFLAGS "-I${CMAKE_BINARY_DIR}/external_zlib/zlib_install/include" )
-set ( ${PROJECT_NAME}_PC_LIBS "-L${CMAKE_LIBRARY_OUTPUT_DIRECTORY} -lzlib" )
+set ( ${PROJECT_NAME}_PC_LIBS "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_STATIC_LIBRARY_PREFIX}z${CMAKE_STATIC_LIBRARY_SUFFIX}" )
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/../../resources/cmake/pkg-config.in 
         ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/pkgconfig/ojdkbuild_zlib.pc )
